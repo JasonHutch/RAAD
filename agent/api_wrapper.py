@@ -8,6 +8,10 @@ from pydantic import BaseModel
 import httpx
 import uvicorn
 from typing import Optional
+from a2a.client import ClientFactory, ClientConfig
+from a2a.types import Message, TextPart, Part
+import asyncio
+import uuid
 
 app = FastAPI(title="RAAD Red Team API")
 
@@ -36,11 +40,10 @@ async def trigger_analysis(request: AnalysisRequest):
     This sends a request via A2A protocol to the red team agent on port 9999
     """
     try:
-        # Send request to the Red Team Agent via A2A
-        async with httpx.AsyncClient(timeout=300.0) as client:  # 5 min timeout for analysis
-            # First, get the agent card to verify connection
+        # First, verify the Red Team Agent is available
+        async with httpx.AsyncClient(timeout=5.0) as client:
             try:
-                card_response = await client.get("http://localhost:9999/")
+                card_response = await client.get("http://localhost:9999/.well-known/agent.json")
                 print(f"Red Team Agent available: {card_response.json()['name']}")
             except Exception as e:
                 raise HTTPException(
@@ -48,34 +51,42 @@ async def trigger_analysis(request: AnalysisRequest):
                     detail=f"Red Team Agent not available on port 9999. Please start it first. Error: {str(e)}"
                 )
 
-            # Send the analysis request
-            a2a_request = {
-                "message": request.message,
-                "metadata": {}
-            }
-
-            response = await client.post(
-                "http://localhost:9999/request",
-                json=a2a_request,
-                headers={"Content-Type": "application/json"}
+        # Send the analysis request via A2A client using the new ClientFactory API
+        async with httpx.AsyncClient(timeout=300.0) as http_client:
+            config = ClientConfig(
+                streaming=False,
+                httpx_client=http_client
+            )
+            a2a_client = await ClientFactory.connect(
+                agent="http://localhost:9999",
+                client_config=config
             )
 
-            if response.status_code == 200:
-                result = response.json()
-                return AnalysisResponse(
-                    status="success",
-                    task_id=result.get("taskId"),
-                    results=result
-                )
-            else:
-                raise HTTPException(
-                    status_code=response.status_code,
-                    detail=f"Red Team Agent returned error: {response.text}"
-                )
+            # Send the message to trigger the red team analysis
+            # Create a proper A2A Message object
+            text_part = TextPart(text=request.message or "run test")
+            part = Part(root=text_part)
+            message = Message(
+                messageId=str(uuid.uuid4()),
+                role="user",
+                parts=[part]
+            )
+
+            # send_message returns an async generator, so we need to collect the results
+            messages = []
+            async for response_message in a2a_client.send_message(message):
+                messages.append(response_message)
+
+        # The A2A client returns the response from the agent
+        return AnalysisResponse(
+            status="success",
+            results={"messages": messages, "message_count": len(messages)}
+        )
 
     except HTTPException:
         raise
     except Exception as e:
+        print(f"Error triggering analysis: {str(e)}")
         return AnalysisResponse(
             status="error",
             error=str(e)
@@ -93,7 +104,7 @@ async def check_status():
     async with httpx.AsyncClient(timeout=5.0) as client:
         # Check Red Team Agent (port 9999)
         try:
-            response = await client.get("http://localhost:9999/")
+            response = await client.get("http://localhost:9999/.well-known/agent.json")
             if response.status_code == 200:
                 status["red_team_agent"] = "running"
                 status["red_team_agent_info"] = response.json()
@@ -102,7 +113,7 @@ async def check_status():
 
         # Check Test Agent (port 8888)
         try:
-            response = await client.get("http://localhost:8888/")
+            response = await client.get("http://localhost:8888/.well-known/agent.json")
             if response.status_code == 200:
                 status["test_agent"] = "running"
                 status["test_agent_info"] = response.json()

@@ -82,10 +82,10 @@ class TestAgentExecutor(AgentExecutor):
         event_queue: EventQueue,
     ) -> None:
         # Get the message from the request context
-        message = context.request.message if hasattr(context.request, 'message') else "Hello"
-        
+        message = context.get_user_input() or "Hello"
+
         result = await self.agent.invoke(message)
-        event_queue.enqueue_event(new_agent_text_message(result))
+        await event_queue.enqueue_event(new_agent_text_message(result))
         
     @override
     async def cancel(

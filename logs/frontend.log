@@ -2,12 +2,12 @@
 > raad-fed@0.1.0 dev
 > next dev
 
- ⚠ Port 3000 is in use by process 26916, using available port 3001 instead.
    ▲ Next.js 16.0.1 (Turbopack)
-   - Local:        http://localhost:3001
-   - Network:      http://172.20.6.120:3001
+   - Local:        http://localhost:3000
+   - Network:      http://172.20.10.12:3000
 
  ✓ Starting...
- ⨯ Unable to acquire lock at /Users/hutch_ii/Projects/RAAD/ui/raad-fed/.next/dev/lock, is another instance of next dev running?
-   Suggestion: If you intended to restart next dev, terminate the other process, and then try again.
-[?25h
+ ✓ Ready in 1550ms
+ ○ Compiling / ...
+ GET / 200 in 3.7s (compile: 3.3s, render: 336ms)
+ GET / 200 in 111ms (compile: 14ms, render: 98ms)
