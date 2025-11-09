@@ -13,6 +13,50 @@ export default function RedTeamAnalysis() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
 
+  // Extract readable text from A2A response messages (robust to shape differences)
+  const extractA2AText = (response: any): string => {
+    try {
+      if (!response) return '';
+
+      // If it's already a string, return it
+      if (typeof response === 'string') return response;
+
+      // If the response is an array of messages
+      if (Array.isArray(response)) {
+        const texts: string[] = [];
+        for (const msg of response) {
+          // Common shapes: msg.parts[0].text OR msg.parts[0].root.text
+          const parts = msg?.parts;
+          if (Array.isArray(parts)) {
+            for (const p of parts) {
+              const t = p?.text ?? p?.root?.text ?? p?.root?.content ?? '';
+              if (t) texts.push(t);
+            }
+          }
+          // Fallbacks
+          const maybeText =
+            msg?.text ?? msg?.content ?? msg?.message ?? '';
+          if (maybeText) texts.push(maybeText);
+        }
+        return texts.filter(Boolean).join('\n');
+      }
+
+      // If it's a single message object
+      const parts = response?.parts;
+      if (Array.isArray(parts)) {
+        const texts = parts
+          .map((p: any) => p?.text ?? p?.root?.text ?? p?.root?.content ?? '')
+          .filter(Boolean);
+        if (texts.length) return texts.join('\n');
+      }
+
+      // Other object shapes
+      return response?.text ?? response?.content ?? '';
+    } catch {
+      return '';
+    }
+  };
+
   const attackTypes = [
     { name: 'Jailbreak Attempts', description: 'Attempts to bypass AI safety constraints' },
     { name: 'Prompt Injection', description: 'Malicious instructions embedded in user input' },
@@ -245,11 +289,16 @@ export default function RedTeamAnalysis() {
                                       Error: {test.error}
                                     </div>
                                   ) : test.response ? (
-                                    <div className="text-sm text-gray-900">
-                                      {typeof test.response === 'string'
-                                        ? test.response
-                                        : JSON.stringify(test.response, null, 2)}
-                                    </div>
+                                    (() => {
+                                      const text = extractA2AText(test.response);
+                                      return (
+                                        <div className="text-sm text-gray-900 whitespace-pre-wrap">
+                                          {text && text.trim().length > 0
+                                            ? text
+                                            : JSON.stringify(test.response, null, 2)}
+                                        </div>
+                                      );
+                                    })()
                                   ) : (
                                     <div className="text-sm text-gray-400 italic">
                                       No response
