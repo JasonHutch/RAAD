@@ -1,8 +1,7 @@
-INFO:     Started server process [62755]
+INFO:     Started server process [84211]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8888 (Press CTRL+C to quit)
 Starting Test Agent Server on http://localhost:8888
-INFO:     127.0.0.1:62259 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62261 - "POST / HTTP/1.1" 200 OK
-INFO:     127.0.0.1:62340 - "POST / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51414 - "GET /.well-known/agent-card.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51414 - "POST / HTTP/1.1" 200 OK

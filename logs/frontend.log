@@ -7,8 +7,5 @@
    - Network:      http://172.20.6.120:3000
 
  ✓ Starting...
- ✓ Ready in 1393ms
- GET / 200 in 2.9s (compile: 2.7s, render: 246ms)
- GET / 200 in 92ms (compile: 7ms, render: 85ms)
- ✓ Compiled in 46ms
- GET / 200 in 325ms (compile: 175ms, render: 150ms)
+ ✓ Ready in 1669ms
+ GET / 200 in 3.3s (compile: 3.0s, render: 334ms)

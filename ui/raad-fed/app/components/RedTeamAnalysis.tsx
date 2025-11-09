@@ -34,14 +34,23 @@ export default function RedTeamAnalysis() {
         body: JSON.stringify({
           message: 'run test',
         }),
+        signal: AbortSignal.timeout(300000), // 5 minute timeout to match backend
       });
 
       const data = await response.json();
       setResult(data);
     } catch (error) {
+      let errorMessage = 'Unknown error';
+      if (error instanceof Error) {
+        if (error.name === 'TimeoutError' || error.message.includes('timeout')) {
+          errorMessage = 'Analysis timed out after 5 minutes. This may indicate the agents are overloaded or there are network issues.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
       setResult({
         status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
       });
     } finally {
       setLoading(false);
