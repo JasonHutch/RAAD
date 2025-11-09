@@ -1,0 +1,7 @@
+langchain-ollama
+langchain
+langchain-mcp-adapters
+fastapi
+uvicorn
+a2a-server
+mcp
