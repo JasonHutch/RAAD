@@ -12,18 +12,14 @@ interface AnalysisResult {
 export default function RedTeamAnalysis() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
-  const [agentStatus, setAgentStatus] = useState<any>(null);
 
-  const checkStatus = async () => {
-    try {
-      const response = await fetch('http://localhost:3001/status');
-      const data = await response.json();
-      setAgentStatus(data);
-    } catch (error) {
-      console.error('Error checking status:', error);
-      setAgentStatus({ error: 'Failed to connect to API' });
-    }
-  };
+  const attackTypes = [
+    { name: 'Jailbreak Attempts', description: 'Attempts to bypass AI safety constraints' },
+    { name: 'Prompt Injection', description: 'Malicious instructions embedded in user input' },
+    { name: 'Harmful Content', description: 'Requests for illegal or dangerous information' },
+    { name: 'Bias Testing', description: 'Probing for discriminatory or biased responses' },
+    { name: 'Privacy Violation', description: 'Attempts to generate sensitive personal data' }
+  ];
 
   const runAnalysis = async () => {
     setLoading(true);
@@ -53,127 +49,251 @@ export default function RedTeamAnalysis() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-6">
-      <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold mb-2 text-zinc-900 dark:text-zinc-50">
-          RAAD - Red Team Agent Analysis
-        </h1>
-        <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-          Hackathon Demo: Nemotron + A2A + MCP
-        </p>
+    <div className="h-full flex gap-6">
+      {/* Left Side - Attack Types and Run Button */}
+      <div className="w-96">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 h-full flex flex-col">
+          <h2 className="text-lg font-semibold mb-2 text-gray-900">
+            Red Team Analysis
+          </h2>
+          <p className="text-sm text-gray-500 mb-6">
+            Adversarial testing using A2A protocol and MCP sentiment analysis
+          </p>
 
-        <div className="flex gap-4 mb-8">
-          <button
-            onClick={checkStatus}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-          >
-            Check Agent Status
-          </button>
+          <div className="flex-1 overflow-auto mb-6">
+            <h3 className="text-sm font-semibold mb-3 text-gray-900">
+              Attack Types Being Tested
+            </h3>
+            <div className="space-y-3">
+              {attackTypes.map((attackType, index) => (
+                <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-900 mb-1">
+                    {attackType.name}
+                  </h4>
+                  <p className="text-xs text-gray-600">
+                    {attackType.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
 
           <button
             onClick={runAnalysis}
             disabled={loading}
-            className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-4 py-3 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Running Analysis...' : 'Run Red Team Analysis'}
+            {loading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                <span>Running Analysis...</span>
+              </div>
+            ) : (
+              'Run Red Team Analysis'
+            )}
           </button>
         </div>
+      </div>
 
-        {agentStatus && (
-          <div className="mb-6 p-4 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
-            <h2 className="text-lg font-semibold mb-2 text-zinc-900 dark:text-zinc-50">
-              Agent Status
-            </h2>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="font-medium">API:</span>
-                <StatusBadge status={agentStatus.api} />
+      {/* Right Side - A2A Results */}
+      <div className="flex-1">
+        <div className="bg-white rounded-lg border border-gray-200 p-6 h-full flex flex-col">
+          <h3 className="text-lg font-semibold mb-2 text-gray-900">
+            A2A Analysis Results
+          </h3>
+          <p className="text-sm text-gray-500 mb-6">
+            Agent-to-Agent communication results and sentiment analysis
+          </p>
+
+          <div className="flex-1 overflow-auto">
+            {!result && !loading && (
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center text-gray-400">
+                  <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <p className="text-sm">No results yet</p>
+                  <p className="text-xs mt-1">Click "Run Red Team Analysis" to start</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Red Team Agent:</span>
-                <StatusBadge status={agentStatus.red_team_agent} />
+            )}
+
+            {loading && (
+              <div className="h-full flex items-center justify-center">
+                <div className="text-center">
+                  <div className="animate-spin h-12 w-12 border-4 border-red-200 border-t-red-600 rounded-full mx-auto mb-4"></div>
+                  <p className="text-sm text-gray-600">Running analysis...</p>
+                  <p className="text-xs text-gray-500 mt-1">This may take a few moments</p>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="font-medium">Test Agent:</span>
-                <StatusBadge status={agentStatus.test_agent} />
-              </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {loading && (
-          <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <p className="text-yellow-800 dark:text-yellow-200">
-              Running adversarial test suite... This may take a few minutes.
-            </p>
-            <div className="mt-2 flex items-center gap-2">
-              <div className="animate-spin h-4 w-4 border-2 border-yellow-600 border-t-transparent rounded-full"></div>
-              <span className="text-sm text-yellow-700 dark:text-yellow-300">
-                Testing multiple prompts against the target agent
-              </span>
-            </div>
-          </div>
-        )}
+            {result && (
+              <div className="space-y-4">
+                {/* Status Badge */}
+                <div
+                  className={`p-4 rounded-lg ${
+                    result.status === 'success'
+                      ? 'bg-green-50 border border-green-200'
+                      : 'bg-red-50 border border-red-200'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    {result.status === 'success' ? (
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    )}
+                    <span className={`font-semibold ${
+                      result.status === 'success' ? 'text-green-800' : 'text-red-800'
+                    }`}>
+                      {result.status === 'success'
+                        ? 'Analysis Complete'
+                        : 'Analysis Failed'}
+                    </span>
+                  </div>
+                  {result.error && (
+                    <p className="text-sm text-red-700 ml-7">{result.error}</p>
+                  )}
+                  {result.task_id && (
+                    <p className="text-xs text-gray-600 ml-7">Task ID: {result.task_id}</p>
+                  )}
+                </div>
 
-        {result && (
-          <div className="space-y-4">
-            <div
-              className={`p-4 rounded-lg ${
-                result.status === 'success'
-                  ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800'
-                  : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
-              }`}
-            >
-              <h2 className="text-lg font-semibold mb-2">
-                {result.status === 'success'
-                  ? '✓ Analysis Complete'
-                  : '✗ Analysis Failed'}
-              </h2>
-              {result.error && (
-                <p className="text-red-700 dark:text-red-300">{result.error}</p>
-              )}
-            </div>
+                {/* Parse and render structured results */}
+                {result.results && (() => {
+                  try {
+                    // Extract the text content from the A2A message structure
+                    const messageText = result.results.messages?.[0]?.parts?.[0]?.text;
+                    if (!messageText) return null;
 
-            {result.results && (
-              <div className="bg-zinc-50 dark:bg-zinc-800 rounded-lg p-6">
-                <h3 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-50">
-                  Analysis Results
-                </h3>
-                <pre className="bg-zinc-900 dark:bg-black text-zinc-100 p-4 rounded overflow-auto text-sm max-h-96">
-                  {JSON.stringify(result.results, null, 2)}
-                </pre>
+                    const parsedData = JSON.parse(messageText);
+                    const summary = parsedData.summary;
+                    const testResults = parsedData.test_results || [];
+
+                    return (
+                      <div className="space-y-6">
+                        {/* Overview Stats - Clean minimal design */}
+                        {summary?.overview && (
+                          <div className="grid grid-cols-4 gap-3">
+                            <div className="border border-gray-300 rounded-lg p-3">
+                              <div className="text-xs text-gray-600 font-medium mb-1">Total Tests</div>
+                              <div className="text-2xl font-semibold text-gray-900">{summary.overview.total_prompts}</div>
+                            </div>
+                            <div className="border border-gray-300 rounded-lg p-3">
+                              <div className="text-xs text-gray-600 font-medium mb-1">Successful</div>
+                              <div className="text-2xl font-semibold text-gray-900">{summary.overview.successful_responses}</div>
+                            </div>
+                            <div className="border border-gray-300 rounded-lg p-3">
+                              <div className="text-xs text-gray-600 font-medium mb-1">Failed</div>
+                              <div className="text-2xl font-semibold text-gray-900">{summary.overview.failed_responses}</div>
+                            </div>
+                            <div className="border border-gray-300 rounded-lg p-3">
+                              <div className="text-xs text-gray-600 font-medium mb-1">Success Rate</div>
+                              <div className="text-2xl font-semibold text-gray-900">{summary.overview.success_rate}%</div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Test Results - Show each prompt and response */}
+                        {testResults.length > 0 && (
+                          <div className="space-y-3">
+                            <h4 className="text-sm font-semibold text-gray-900">Test Results</h4>
+                            {testResults.map((test: any, idx: number) => (
+                              <div key={idx} className="border border-gray-300 rounded-lg overflow-hidden">
+                                {/* Prompt */}
+                                <div className="bg-gray-50 p-3 border-b border-gray-300">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex-1">
+                                      <div className="text-xs font-medium text-gray-600 mb-1">
+                                        Prompt #{idx + 1}
+                                      </div>
+                                      <div className="text-sm text-gray-900">
+                                        {test.prompt}
+                                      </div>
+                                    </div>
+                                    <span className={`text-xs px-2 py-1 rounded ${
+                                      test.status === 'success'
+                                        ? 'bg-gray-200 text-gray-700'
+                                        : 'bg-gray-200 text-gray-700'
+                                    }`}>
+                                      {test.status}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* Response */}
+                                <div className="p-3 bg-white">
+                                  <div className="text-xs font-medium text-gray-600 mb-2">
+                                    Response
+                                  </div>
+                                  {test.status === 'error' ? (
+                                    <div className="text-sm text-gray-600 italic">
+                                      Error: {test.error}
+                                    </div>
+                                  ) : test.response ? (
+                                    <div className="text-sm text-gray-900">
+                                      {typeof test.response === 'string'
+                                        ? test.response
+                                        : JSON.stringify(test.response, null, 2)}
+                                    </div>
+                                  ) : (
+                                    <div className="text-sm text-gray-400 italic">
+                                      No response
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Recommendations - Clean minimal design */}
+                        {summary?.recommendations && summary.recommendations.length > 0 && (
+                          <div className="space-y-2">
+                            <h4 className="text-sm font-semibold text-gray-900">Recommendations</h4>
+                            {summary.recommendations.map((rec: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="border border-gray-300 rounded-lg p-3"
+                              >
+                                <div className="text-sm font-medium text-gray-900 mb-1">
+                                  {rec.title}
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  {rec.description}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  } catch (e) {
+                    // If parsing fails, show raw JSON
+                    return (
+                      <div className="border border-gray-300 rounded-lg p-4">
+                        <h4 className="text-sm font-semibold mb-3 text-gray-900">
+                          Detailed Results
+                        </h4>
+                        <div className="bg-gray-100 rounded-lg p-4 overflow-auto max-h-96">
+                          <pre className="text-xs text-gray-800 font-mono">
+                            {JSON.stringify(result.results, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    );
+                  }
+                })()}
               </div>
             )}
           </div>
-        )}
-
-        <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <h3 className="font-semibold mb-2 text-blue-900 dark:text-blue-200">
-            Tech Stack Demo
-          </h3>
-          <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
-            <li>🤖 <strong>Nemotron-mini</strong> - NVIDIA's LLM via Ollama</li>
-            <li>🔗 <strong>A2A Protocol</strong> - Agent-to-Agent communication</li>
-            <li>🔧 <strong>MCP</strong> - Model Context Protocol for sentiment analysis</li>
-            <li>⚛️ <strong>Next.js</strong> - React frontend</li>
-            <li>🐍 <strong>FastAPI</strong> - Python backend services</li>
-          </ul>
         </div>
       </div>
     </div>
-  );
-}
-
-function StatusBadge({ status }: { status: string }) {
-  const colors = {
-    running: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300',
-    'not running': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300',
-    unknown: 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300',
-  };
-
-  return (
-    <span className={`px-2 py-1 rounded text-xs font-medium ${colors[status as keyof typeof colors] || colors.unknown}`}>
-      {status}
-    </span>
   );
 }

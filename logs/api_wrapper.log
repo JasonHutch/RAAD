@@ -1,4 +1,4 @@
-INFO:     Started server process [34614]
+INFO:     Started server process [62781]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:3001 (Press CTRL+C to quit)
@@ -6,6 +6,9 @@ Starting RAAD API Wrapper on http://localhost:3001
 Make sure the following are running:
   - Test Agent on port 8888
   - Red Team Agent on port 9999
-INFO:     127.0.0.1:63259 - "GET /status HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63259 - "OPTIONS /analyze HTTP/1.1" 200 OK
-INFO:     127.0.0.1:63259 - "POST /analyze HTTP/1.1" 503 Service Unavailable
+Red Team Agent available: Red Team Security Agent
+INFO:     127.0.0.1:62253 - "POST /analyze HTTP/1.1" 200 OK
+Red Team Agent available: Red Team Security Agent
+INFO:     127.0.0.1:62324 - "POST /analyze HTTP/1.1" 200 OK
+Red Team Agent available: Red Team Security Agent
+INFO:     127.0.0.1:62334 - "POST /analyze HTTP/1.1" 200 OK
