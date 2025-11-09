@@ -1,67 +1,37 @@
-# RAAD (Red Team Adversarial Analysis Demo)
+# RAAD (Realtime Agent Analysis Dashboard)
 
-A demo stack for adversarial testing of AI agents using the A2A protocol, MCP tools, and a Next.js UI.
-
-## Stack
-- UI: Next.js (raad-fed)
-- API Wrapper: FastAPI on port 3001
-- Agents (A2A):
-  - Test Agent on port 8888
-  - Red Team Agent on port 9999
-- LLM: Ollama (nemotron-mini)
-- Tools: MCP Sentiment Analysis (Python script)
+Adversarial testing of AI agents using A2A protocol, MCP tools, and Next.js UI.
 
 ## Prerequisites
-- Python 3.10+
-- Node.js 18+
-- Ollama installed and running
-- Model: `nemotron-mini` pulled in Ollama
-- Python deps: `pip install -r requirements.txt` (if present)
+- Ollama with `nemotron-mini` model
+- Python 3.10+ and Node.js 18+
 
 ## Quick Start
-1. Start Ollama and ensure `nemotron-mini` is available:
-   - `ollama pull nemotron-mini`
-2. Start the Test Agent (8888):
-   - `python agent/test_agent_server.py`
-3. Start the Red Team Agent (9999):
-   - `python agent/server.py`
-4. Start the API wrapper (3001):
-   - `python agent/api_wrapper.py`
-5. Start the UI:
-   - `cd ui/raad-fed && npm install && npm run dev`
-6. Visit the UI at http://localhost:3000 and run "Red Team Analysis".
+```bash
+# Setup (one time)
+./setup.sh
 
-## Status Check
-- API wrapper: `curl -s http://localhost:3001/status`
-- Agent cards:
-  - Red Team: `curl -s http://localhost:9999/.well-known/agent.json`
-  - Test Agent: `curl -s http://localhost:8888/.well-known/agent.json`
+# Start all services
+raad start
+```
 
-## Configuration Notes
-- A2A timeouts are configured to handle slow LLM responses (300s).
-- Red Team agent uses bounded concurrency for prompts (default: 2).
-- UI fetch uses a 5m timeout to match backend.
+Visit http://localhost:3000 and click "Run Red Team Analysis".
+
+## Architecture
+- **Test Agent** (8888): Target for adversarial prompts
+- **Red Team Agent** (9999): Sends prompts, analyzes responses
+- **API Wrapper** (3001): FastAPI bridge for UI
+- **Frontend** (3000): Next.js dashboard
+
+## Manual Start (if CLI unavailable)
+```bash
+python agent/test_agent_server.py &
+python agent/server.py &
+python agent/api_wrapper.py &
+cd ui/raad-fed && npm run dev
+```
 
 ## Troubleshooting
-- Timeout during analysis:
-  - Ensure both agents are running and `nemotron-mini` is loaded (first call can be slow).
-  - Check API status: `curl -s http://localhost:3001/status`.
-  - Verify A2A library is installed/available in the Python env.
-- Red Team `/invoke` returns Not Found:
-  - Expected. Use A2A endpoints via the API wrapper or `.well-known/agent.json`.
-- Slow responses:
-  - Keep nemotron (hackathon constraint). Concurrency is enabled; consider reducing prompt count.
-
-## Project Layout
-- `agent/`
-  - `server.py` Red Team Agent (A2A server on 9999)
-  - `test_agent_server.py` Test Agent (A2A server on 8888)
-  - `api_wrapper.py` FastAPI wrapper for UI (3001)
-  - `lib/analysis.py` Result analysis and summary
-- `ui/raad-fed/` Next.js frontend
-
-## Common Commands
-- Red Team Agent: `python agent/server.py`
-- Test Agent: `python agent/test_agent_server.py`
-- API Wrapper: `python agent/api_wrapper.py`
-- UI: `cd ui/raad-fed && npm run dev`
+- **Timeouts**: Ensure Ollama is running and `nemotron-mini` is pulled
+- **Status check**: `curl http://localhost:3001/status`
+- **Logs**: Check `logs/` directory when using `raad start`
